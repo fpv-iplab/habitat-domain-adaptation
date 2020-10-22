@@ -1,0 +1,58 @@
+ENVIRONMENT:
+  MAX_EPISODE_STEPS: 200 #500
+SIMULATOR:
+  FORWARD_STEP_SIZE: 0.25
+  TURN_ANGLE: 10
+
+  AGENT_0:
+    SENSORS: ['RGB_SENSOR', 'DEPTH_SENSOR']
+  HEIGHT: 0.92 # sanbot
+  RADIUS: 0.40
+
+  HABITAT_SIM_V0:
+    GPU_DEVICE_ID: 0
+  RGB_SENSOR:
+    WIDTH: 256
+    HEIGHT: 256
+    HFOV: 42 # realsense d435 RGB (HFOV, VFOV) res. 1920x1080, 16:9: (69, 42). With res. of 640x480, HFOV is VFOV*(640*480)=42*1,333=56. If the image is cropped, HFOV==VFOV
+    POSITION: [0.0, 0.80, 0.0]
+  DEPTH_SENSOR:
+    WIDTH: 256
+    HEIGHT: 256
+    HFOV: 62 # realsense d435 DEPTH (HFOV, VFOV) res. 1920x1080, 16:9: (86, 57), (HFOV, VFOV) res. 640x480, 4:3: (74,62). If the image is cropped, HFOV==VFOV
+    POSITION: [0.0, 0.80, 0.0]
+    MIN_DEPTH: 0.25 #0.25 # 0.1 in the doc, 0.25 testing the camera
+    MAX_DEPTH: 4.5 # 10.0 in the doc, but varies depending on calibration, scene, and lighting condition
+  
+  # noisy actions
+  ACTION_SPACE_CONFIG: customrobotnoisy
+  NOISE_MODEL:
+    ROBOT: Universal
+    CONTROLLER: Proportional
+    NOISE_STD: 0.05 # in meters
+    ROT_NOISE_STD: 5.0 # in degrees
+
+
+TASK:
+  TYPE: Nav-v0
+  SUCCESS_DISTANCE: 0.2
+
+  SENSORS: ['POINTGOAL_WITH_GPS_COMPASS_SENSOR', 'PROXIMITY_SENSOR', 'COMPASS_SENSOR', 'GPS_SENSOR', 'GLOBAL_GPS_SENSOR', 'GLOBAL_COMPASS_SENSOR']
+  
+  POINTGOAL_WITH_GPS_COMPASS_SENSOR:
+    GOAL_FORMAT: "POLAR"
+    DIMENSIONALITY: 2
+    GPS_NOISE_AMOUNT: 0.0 # meters
+    ROT_NOISE_AMOUNT: 0.0 # degrees
+  GOAL_SENSOR_UUID: pointgoal_with_gps_compass
+
+  MEASUREMENTS: ['DISTANCE_TO_GOAL', 'SUCCESS', 'SPL']
+  SPL:
+    TYPE: SPL
+    SUCCESS_DISTANCE: 0.2
+
+
+DATASET:
+  TYPE: PointNav-v1
+  SPLIT: train
+  DATA_PATH: data/datasets/pointnav/orangedev/v1/{split}/{split}.json.gz
